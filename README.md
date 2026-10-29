@@ -1,69 +1,47 @@
-# SpecForge starter
+# SpecForge AI
 
-Participant portal (sign in, prompts, submit): **https://specforge-arena.vercel.app**
+SpecForge AI turns course specification documents and optional question-paper blueprints into a reviewed, validated course-specification package.
 
-Level 0 is already built: a React app and an Express server that run together, plus a Settings panel where you paste your own AI key.
+## Features
+- React + TypeScript dark dashboard with five themes.
+- Upload DOCX/PDF specifications and an optional blueprint.
+- Gemini-powered structured analysis using `GEMINI_API_KEY` (server-side only).
+- Local deterministic checks for missing fields, hours, assessment totals, duplicate COs, and placeholders.
+- Integrated Lab / Non-Lab template selection with reason-required manual override.
+- CO–PO–PSO mapping suggestions with strength and justification.
+- JSON, standalone HTML, and validation-report exports.
+- Author / Reviewer / HOD workflow demonstration with server-side state/role checks.
+- Sample demo course so the app can be explored without uploading a file.
 
-## Start (5 minutes)
+## Requirements
+Node.js 20+ and npm.
 
+## Setup
 ```bash
 npm install
+cp .env.example .env
+```
+Add your Gemini API key in the app's **Settings → Gemini AI → Save API key**, or add it to `.env` as `GEMINI_API_KEY=...`. The Settings flow saves it to the local `.env` file with owner-only permissions and makes it available immediately. Do not commit `.env`.
+
+Get a key at [Google AI Studio](https://aistudio.google.com/apikey). The default model is `gemini-3-flash-preview`; update the model in Settings if your account has access to a different Gemini model.
+
+## Run
+```bash
 npm run dev
 ```
+Open http://localhost:5173. The Vite dev server proxies API requests to the local API server, so the app also works from another device on the same private network using the computer's LAN address (for example, `http://192.168.x.x:5173`). Key updates are accepted only from a matching localhost or private-network origin.
 
-Open http://localhost:5173. Press **Settings**, choose Gemini or OpenRouter, paste your key, press **Test key**. If it says the key works, you are ready for Level 1.
-
-Don't have a key yet? Ask at the help desk. It is free.
-
-## Where things are
-
-| Folder | What it is |
-| --- | --- |
-| `kit/` | Handbook, one-page guidelines, primer cards and the prompt pack (`specforge-prompt.json`, every level prompt). |
-| `sample-inputs/` | A sample course spec, a blueprint and the PO/PSO reference. Practice here. |
-| `templates/` | The two HTML layouts your export must use. |
-| `config/` | `po_pso.json` (POs, PSOs, Bloom's levels) and `specforge_output.schema.json` (the format of your output file). |
-| `src/`, `server/` | Your app. |
-| `outputs/` | Where your exported `specforge_output.json` goes. |
-
-## Working with your AI assistant
-
-This repo has an `AGENTS.md` (also copied as `CLAUDE.md`, `GEMINI.md` and a Cursor rule). Your assistant reads it first. Paste each level's prompt from the handbook, in order.
-
-## Before you submit
-
-With the app running (`npm run dev`), in a second terminal:
-
+## Verify
 ```bash
-npm run verify -- gemini YOUR_KEY
+npm run typecheck
+npm test
+npm run check-template
+npm run build
 ```
 
-This sends the sample files to your app's `POST /api/v1/generate`, exactly as the organisers will, saves
-`outputs/specforge_output.json` and `outputs/spec.html`, and checks the output file. Upload both files on the portal,
-or zip the whole project (with `outputs/` inside) and upload just the zip.
-
-Your final score comes from the organisers running your code: your last commit before 15:45, or your latest zip if that is
-newer. So `npm install` + `npm start` must work on a fresh copy of your project. Don't commit your key.
-
-## Handing in a zip instead of a repo
-
-No GitHub repo, or it won't push? Upload a `.zip` of your project in **Submit**. If it has `outputs/` inside, the zip alone
-is a full submission: both files are read from it.
-
-| Put in the zip | Leave out |
-| --- | --- |
-| `package.json`, `package-lock.json` | `node_modules/` (the organisers install packages; it makes the zip too big) |
-| `server/`, `src/`, `scripts/`, `config/`, `templates/` | `.env` (holds your API key; a zip with one is refused) |
-| `index.html`, `tsconfig.json`, `vite.config.ts`, `README.md` | `.git/`, `dist/` |
-| `outputs/specforge_output.json`, `outputs/spec.html` (scored) | `kit/`, `sample-inputs/` (optional) |
-
-- **Windows:** open the project folder, select everything except `node_modules` and `.env`, right-click, **Send to**,
-  **Compressed (zipped) folder**.
-- **Mac:** select the same files in Finder, right-click, **Compress**.
-- **Terminal** (Mac, Linux, Git Bash), in the project folder:
-
-```bash
-zip -r specforge.zip . -x "node_modules/*" ".git/*" "dist/*" ".env*"
-```
-
-Up to 4 MB (this starter zips to about 0.3 MB). Each new zip replaces the last one; zips can be uploaded until 15:45.
+## Notes / limitations
+- Gemini API calls are made on the server; the API key is never sent to the browser or written to logs.
+- Scanned/image-only PDFs need OCR, which is not included in this MVP.
+- PDF export uses the browser's Print → Save as PDF workflow from the generated HTML. This avoids silently claiming server-side PDF generation where none is implemented.
+- The included role switcher is a local demonstration, not production authentication. Use real authentication and a database before deployment.
+- AI-suggested academic mappings and corrections require human review. Missing data is flagged rather than fabricated.
